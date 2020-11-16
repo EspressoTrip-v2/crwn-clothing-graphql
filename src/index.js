@@ -3,25 +3,48 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 
+/* APOLLO MODULES */
+import { ApolloProvider } from 'react-apollo';
+import { createHttpLink } from 'apollo-link-http';
+import { InMemoryCache } from 'apollo-cache-inmemory';
+import { ApolloClient } from 'apollo-boost';
+
+import { resolvers, typeDefs } from './graphql/resolvers';
+
 /* ROUTER MODULE */
 import { BrowserRouter } from 'react-router-dom';
 
-/* PROVIDER WRAPPER */
-import { Provider } from 'react-redux';
+/* CREATE CONNECTION TO GRAPHQL BACK END*/
+const httpLink = createHttpLink({
+  uri: 'https://crwn-clothing.com',
+});
 
-/* REDUX STATE STORE */
-import { store, persistor } from './redux/store';
+/* APOLLO CACHE */
+const cache = new InMemoryCache();
 
-/* REDUX PERSIST */
-import { PersistGate } from 'redux-persist/integration/react';
+/* APOLLO CLIENT */
+const client = new ApolloClient({
+  link: httpLink,
+  cache,
+  typeDefs,
+  resolvers,
+});
+
+/* APOLLO CACHE OBJECT */
+client.writeData({
+  data: {
+    cartHidden: true,
+    cartItems: [],
+    itemCount: 0,
+    itemTotal: 0,
+  },
+});
 
 ReactDOM.render(
-  <Provider store={store}>
+  <ApolloProvider client={client}>
     <BrowserRouter>
-      <PersistGate persistor={persistor}>
-        <App />
-      </PersistGate>
+      <App />
     </BrowserRouter>
-  </Provider>,
+  </ApolloProvider>,
   document.getElementById('root')
 );
